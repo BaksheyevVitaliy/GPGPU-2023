@@ -30,8 +30,6 @@ int main(void) {
 	A->plus(B);
 	std::cout << "A2+B2:\n";
 	A->Print();
-	A->fill(secondArDataB);
-	A->Print();
 	delete A;
 	delete B;
 	delete A2;

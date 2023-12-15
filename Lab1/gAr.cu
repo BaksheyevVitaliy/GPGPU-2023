@@ -41,10 +41,10 @@ gAr gAr::operator+(const gAr* B)
 	return *this;
 }
 
-__global__ void SumKernel(double* a, double* b, int n) {
-	int idx = blockDim.x * blockIdx.x + threadIdx.x;
-	if (idx < n) {
-		a[idx] += b[idx];
+__global__ void plusParallel(double* A, double* B, int eNumb) {
+	int thrN = blockDim.x * blockIdx.x + threadIdx.x;
+	if (thrN < eNumb) {
+		A[thrN] += B[thrN];
 	}
 }
 
@@ -52,7 +52,7 @@ void gAr::plus(const gAr* B)
 {
 	dim3 blocks(1+ (this->elemNumb - 1) / 1024, 1, 1);
 	dim3 threads(std::min(this->elemNumb, 1024), 1, 1);
-	SumKernel <<<blocks, threads >>> (this->data, B->data, this->elemNumb);
+	plusParallel <<<blocks, threads>>> (this->data, B->data, this->elemNumb);
 	cudaDeviceSynchronize();
 }
 
