@@ -4,6 +4,7 @@
 #include <cstring>
 #include <iostream>
 #include<math.h>
+#include <cooperative_groups.h>
 
 #include "cuda_runtime.h"
 #include "gAr.cuh"
@@ -154,24 +155,30 @@ void gAr::shMultSquare(const gAr* A, const gAr* B)
 }
 
 __global__ void shMultRowParallel(double* C, double* A, double* B, int eNumb, int AValRow, int AValCol, int BValCol) {
-	__shared__ double Arow[1024][1];
+	__shared__ double Arow[1024];
 	double buf = 0;
 	int i = blockIdx.y;
 	int j = blockDim.x * blockIdx.x + threadIdx.x;
 	for (int l = 0; l < 1 + (AValCol - 1) / 1024; l++) {
-		if (l * 1024 + threadIdx.x < AValCol)
-			Arow[threadIdx.x][0] = A[AValCol * i + l * 1024 + threadIdx.x];
-		else
-			Arow[threadIdx.x][0] = 0;
+		if (l * 1024 + threadIdx.x < AValCol) {
+			Arow[threadIdx.x] = A[AValCol * i + l * 1024 + threadIdx.x];
+		}
+		else {
+			Arow[threadIdx.x] = 0;
+		}
 		__syncthreads();
 		for (int k = 0; k < 1024; k++) {
-			buf += Arow[k][0] * B[(k + l * 1024) * BValCol + j];
-//			if (i == 2 && j == 0 && k < 4)
-//				printf("%f * %f ", Arow[k][0], B[(k + l * 1024) * BValCol + j]);
+			if (k + l * 1024 < AValCol) {
+				buf += Arow[k] * B[(k + l * 1024) * BValCol + j];
+			}
+			else
+				break;
 		}
 		__syncthreads();
 	}
-	C[i * BValCol + j] = buf;
+	if ((i < AValRow) && (j < BValCol)) {
+		C[i * BValCol + j] = buf;
+	}
 }
 
 void gAr::shMultRow(const gAr* A, const gAr* B)
