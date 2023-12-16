@@ -18,8 +18,8 @@ void createRandArr(double* buffer, int elem_num) {
 
 int main(void) {
 	double changeN = 100;
-	double koefN = 10;
-	int NIterN = 2;
+	double koefN = pow(10, 0.1);
+	int NIterN = 21;
 	int NIter = 10;
 	FILE* fp;
 	fp = fopen("GPGPUExperimentResults.txt", "w");
@@ -29,12 +29,6 @@ int main(void) {
 		int numElem = N * N;
 		double* dataA = new double[numElem];
 		double* dataB = new double[numElem];
-		//for (int i = 0; i < numElem; i++) {
-		//	dataA[i] = i;
-		//}
-		//for (int i = 0; i < numElem; i++) {
-		//	dataB[i] = numElem - i;
-		//}
 		cAr* A1 = new cAr(2, Dim);
 		cAr* B1 = new cAr(2, Dim);
 		cAr* C1 = new cAr(2, Dim);
@@ -88,7 +82,9 @@ int main(void) {
 		std::cout << "GPU non shared: " << avggpuT << " ms.\n";
 		std::cout << "GPU shared row: " << avggpuTRow << " ms.\n";
 		std::cout << "GPU shared square: " << avggpuTSquare << " ms.\n";
+		std::cout << "GPU error:"<< C4->error(C1)<<"\n";
 		fprintf(fp, "%i %f %f %f %f\n", N, avgcpuT, avggpuT, avggpuTRow, avggpuTSquare);
+		
 		delete A1;
 		delete B1;
 		delete C1;
